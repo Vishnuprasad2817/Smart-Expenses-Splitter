@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Expense Splitter</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo">
+                <h2>Smart Expense Splitter</h2>
+                <span class="ai-badge">AI Powered</span>
+            </div>
+            <nav>
+                <a href="#" class="nav-item active" data-target="dashboard-view">Dashboard</a>
+                <a href="#" class="nav-item" data-target="groups-view">My Groups</a>
+                <a href="#" class="nav-item" data-target="users-view">Users</a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Dashboard View -->
+            <section id="dashboard-view" class="view active">
+                <header class="view-header">
+                    <h1>Welcome Back</h1>
+                    <p>Manage your shared expenses seamlessly.</p>
+                </header>
+                <div class="cards-grid">
+                    <div class="card glass">
+                        <h3>Total Groups</h3>
+                        <p class="stat" id="stat-groups">0</p>
+                    </div>
+                    <div class="card glass">
+                        <h3>Active Users</h3>
+                        <p class="stat" id="stat-users">0</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Users View -->
+            <section id="users-view" class="view hidden">
+                <header class="view-header">
+                    <h1>Users</h1>
+                </header>
+                <div class="form-group row">
+                    <input type="text" id="new-user-name" placeholder="Enter user name...">
+                    <button class="btn primary" onclick="createUser()">Add User</button>
+                </div>
+                <div class="list-container" id="users-list">
+                    <!-- Users injected here -->
+                </div>
+            </section>
+
+            <!-- Groups View -->
+            <section id="groups-view" class="view hidden">
+                <header class="view-header">
+                    <h1>Groups</h1>
+                    <button class="btn primary" onclick="showCreateGroupModal()">+ New Group</button>
+                </header>
+                <div class="groups-grid" id="groups-list">
+                    <!-- Groups injected here -->
+                </div>
+            </section>
+
+            <!-- Single Group Detail View -->
+            <section id="group-detail-view" class="view hidden">
+                <header class="view-header">
+                    <button class="btn icon-btn" onclick="switchView('groups-view')">← Back</button>
+                    <h1 id="detail-group-name">Group Name</h1>
+                    <span class="group-id-badge" id="detail-group-id"></span>
+                </header>
+
+                <div class="group-tabs">
+                    <button class="tab active" onclick="switchGroupTab('expenses')">Expenses</button>
+                    <button class="tab" onclick="switchGroupTab('balances')">Balances & Settlements</button>
+                    <button class="tab" onclick="switchGroupTab('members')">Members</button>
+                </div>
+
+                <div id="tab-expenses" class="tab-content active">
+                    <div class="action-bar">
+                        <button class="btn primary" onclick="showAddExpenseModal()">Add Expense</button>
+                        <button class="btn secondary" onclick="getAIInsights()">💡 Get AI Insights</button>
+                    </div>
+                    <div id="ai-insights-box" class="glass-alert hidden"></div>
+                    <div class="expenses-list" id="group-expenses-list">
+                        <!-- Expenses injected here -->
+                    </div>
+                </div>
+
+                <div id="tab-balances" class="tab-content hidden">
+                    <div class="balances-grid">
+                        <div class="card glass">
+                            <h3>Balances</h3>
+                            <ul id="balances-list" class="simple-list"></ul>
+                        </div>
+                        <div class="card glass accent">
+                            <h3>Suggested Settlements</h3>
+                            <ul id="settlements-list" class="simple-list"></ul>
+                        </div>
+                    </div>
+                    <div class="ai-reply-tool glass mt-4">
+                        <h3>AI Suggested Reply</h3>
+                        <p class="subtitle">Got a settlement message? Let AI write a reply.</p>
+                        <div class="form-group row">
+                            <input type="text" id="settlement-msg-input" placeholder="e.g. 'Hey, pay me back the ₹20 for food.'">
+                            <button class="btn primary" onclick="generateReply()">Generate</button>
+                        </div>
+                        <p id="ai-reply-output" class="ai-output mt-2"></p>
+                    </div>
+                </div>
+
+                <div id="tab-members" class="tab-content hidden">
+                    <div class="form-group row">
+                        <select id="add-member-select">
+                            <option value="">Select user...</option>
+                        </select>
+                        <button class="btn primary" onclick="addGroupMember()">Add to Group</button>
+                    </div>
+                    <ul id="group-members-list" class="simple-list"></ul>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Modals -->
+    <div id="create-group-modal" class="modal hidden">
+        <div class="modal-content glass">
+            <h2>Create Group</h2>
+            <div class="form-group">
+                <label>Group Name</label>
+                <input type="text" id="new-group-name">
+            </div>
+            <div class="modal-actions">
+                <button class="btn secondary" onclick="closeModal('create-group-modal')">Cancel</button>
+                <button class="btn primary" onclick="createGroup()">Create</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="add-expense-modal" class="modal hidden">
+        <div class="modal-content glass">
+            <h2>Add Expense</h2>
+            <div class="form-group">
+                <label>Description</label>
+                <input type="text" id="exp-desc" placeholder="Dinner at Joe's">
+            </div>
+            <div class="form-group">
+                <label>Amount (₹)</label>
+                <input type="number" id="exp-amount" step="0.01">
+            </div>
+            <div class="form-group">
+                <label>Paid By</label>
+                <select id="exp-paid-by"></select>
+            </div>
+            <p class="hint">Note: Expense will be split equally among all group members automatically.</p>
+            <div class="modal-actions">
+                <button class="btn secondary" onclick="closeModal('add-expense-modal')">Cancel</button>
+                <button class="btn primary" onclick="addExpense()">Save & Categorize (AI)</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>
